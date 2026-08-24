@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip --version)",
+      "Bash(py --version)",
+      "Bash(where python *)",
+      "Bash(where python3 *)",
+      "Bash(py -0)",
+      "Bash(conda --version)",
+      "Bash(\"C:\\\\Users\\\\Ali sheroz\\\\AppData\\\\Local\\\\Microsoft\\\\WindowsApps\\\\python.exe\" --version)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(touch data/.gitkeep artifacts/.gitkeep)",
+      "Bash(printf '%s\\\\n' \"*\" \"!.gitkeep\")",
+      "Bash(rm -f data/.gitkeep.dummy)",
+      "Bash(ls -la \"/c/Python314/\" 2>&1 | head -30)",
+      "Read(//c/Users/Ali sheroz/AppData/Local/Programs/Python/**)",
+      "Read(//c/Program Files/**)",
+      "Bash(ls -d /c/Python3*)",
+      "Bash(.venv/Scripts/python.exe -m pytest tests -v)",
+      "Bash(\".venv/Scripts/python.exe\" -m compileall -q src tests)",
+      "Bash(\".venv/Scripts/python.exe\" -m src.train --help)",
+      "Bash(\".venv/Scripts/python.exe\" -m pytest tests/test_segmentation.py tests/test_localization.py tests/test_gradcam.py tests/test_explain.py -v)",
+      "Bash(echo \"--- exit $? ---\")",
+      "Bash(\".venv/Scripts/python.exe\" -m compileall -q src tests app.py)",
+      "Bash(\".venv/Scripts/python.exe\" -m pytest tests/test_backend.py tests/test_report.py -v)",
+      "Bash(\".venv/Scripts/python.exe\" -m pytest tests/test_report.py -v)",
+      "Bash(\".venv/Scripts/python.exe\" -m pytest tests -q)",
+      "Bash(\".venv/Scripts/python.exe\" -m compileall -q src/molecular.py src/config.py tests/test_molecular.py)",
+      "Bash(\".venv/Scripts/python.exe\" -m pytest tests/test_molecular.py -v)",
+      "Bash(.venv/Scripts/python.exe -m compileall -q app.py src/molecular.py)",
+      "Bash(.venv/Scripts/python.exe -m pytest tests -q)"
+    ]
+  }
+}

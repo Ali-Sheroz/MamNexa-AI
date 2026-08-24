@@ -1,0 +1,45 @@
+# ============================================================================
+# MamNexa AI - Phase I (Imaging Baseline) dependencies
+# ----------------------------------------------------------------------------
+# Open-source, non-commercial (CC BY-NC 4.0). Research decision-support only.
+# Tested target: Python 3.11 / 3.12 (local) and Google Colab.
+#
+# Pins are intentionally conservative. The tensorflow<->numpy relationship is
+# the most fragile part of this stack: TF 2.17.x requires numpy>=1.26,<2.1,
+# so numpy is upper-bounded to stay inside that window. Do not loosen the numpy
+# pin without re-checking the installed TensorFlow's constraint.
+# ============================================================================
+
+# --- Core deep-learning framework (Phase I baseline classifier) -------------
+tensorflow==2.17.0            # Keras 3 bundled; provides EfficientNet-B0
+numpy>=1.26.0,<2.1.0          # bounded to satisfy tensorflow 2.17 constraint
+
+# --- Medical image I/O and DICOM decoding -----------------------------------
+pydicom>=2.4.0,<3.0.0         # DICOM parsing; 2.x import path used in src/preprocessing.py
+python-gdcm>=3.0.24           # decompress JPEG/JPEG2000/RLE DICOM transfer syntaxes
+pylibjpeg>=2.0.0              # additional DICOM codec framework
+pylibjpeg-libjpeg>=2.1.0      # (de)JPEG plugin for pylibjpeg
+pylibjpeg-openjpeg>=2.3.0     # JPEG2000 plugin (common in CBIS-DDSM sources)
+
+# --- Classical image processing ---------------------------------------------
+opencv-python-headless>=4.9.0 # headless build: no GUI deps, safe on servers/Colab/Streamlit
+Pillow>=10.2.0               # image encode/decode helper
+
+# --- Data handling & patient-level splitting --------------------------------
+pandas>=2.1.0                # CBIS-DDSM metadata CSV handling
+scikit-learn>=1.4.0          # StratifiedGroupKFold for zero-leakage splits
+tqdm>=4.66.0                 # progress bars for batch preprocessing
+
+# --- Interface & reporting (wired up in Phase III; listed for a single env) -
+streamlit>=1.36.0            # demo dashboard
+fpdf2>=2.7.9                 # vector PDF pre-analysis report generation
+
+# --- Backend / storage SDK (integrated in Phase III) ------------------------
+supabase>=2.6.0              # supabase-py SDK (PostgreSQL metadata + S3 buckets)
+python-dotenv>=1.0.1         # load Supabase credentials from a local .env
+
+# --- Visualization / EDA (split inspection now; Grad-CAM heatmaps in II) -----
+matplotlib>=3.8.0
+
+# --- Testing ----------------------------------------------------------------
+pytest>=8.0.0                # runs tests/ (each test file is also directly runnable)
