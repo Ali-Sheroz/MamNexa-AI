@@ -6,10 +6,9 @@
 [![Python 3.11 / 3.12](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![Status: Research prototype](https://img.shields.io/badge/status-research%20prototype-orange.svg)](#status--maturity)
 
-> ⚠️ **Research decision-support only — NOT a medical device and NOT a diagnostic tool.**
-> MamNexa AI does not, and cannot, confirm or rule out cancer. Every output is a
-> model-generated *research signal* that **Requires Professional Review** by a
-> qualified clinician. See [Clinical & scientific guardrails](#clinical--scientific-guardrails).
+> ⚠️ ** Research and educational prototype only — NOT a medical device, diagnostic tool, or clinical decision-support system.
+MamNexa AI is designed to demonstrate an explainable AI framework for breast-cancer research. It does not confirm, rule out, or diagnose cancer. Outputs are model-generated research signals intended solely for educational and research evaluation and must not be used to make or influence clinical decisions.
+Any real-world mammographic finding requires interpretation by a qualified healthcare professional. See Clinical & scientific guardrails. See [Clinical & scientific guardrails](#clinical--scientific-guardrails).
 
 ---
 
