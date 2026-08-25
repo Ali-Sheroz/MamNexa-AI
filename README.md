@@ -32,22 +32,13 @@ Any real-world mammographic finding requires interpretation by a qualified healt
 
 ## What MamNexa AI is
 
-MamNexa AI is a **portfolio / research** framework that demonstrates, end to end,
-how an explainable AI pipeline for breast-cancer research can be built responsibly:
+MamNexa AI is a **python-based research and educational framework** that demonstrates how an explainable AI pipeline for breast-cancer research can be designed and implemented responsibly::
 
-- **Imaging analysis** — a mammogram is preprocessed from DICOM (with all patient
-  identifiers stripped), scored by an EfficientNet-B0 classifier, localized by a
-  U-Net segmenter, and explained with Grad-CAM attention heatmaps and numbered,
-  contoured regions of interest.
-- **Molecular context** — a TCGA-BRCA transcriptomic module maps gene-expression
-  profiles onto well-established biological pathways (cell-cycle control, DNA
-  damage response & repair, PI3K–AKT–mTOR, hormone-receptor signaling, HER2/ERBB)
-  to provide *research* context on tumor biology.
-- **Interface & governance** — a local Streamlit dashboard ties it together, emits
-  a vector PDF pre-analysis report, and implements a strict **Right to Erasure**.
+- **Mammographic Imaging Framework** —supports DICOM preprocessing with removal of patient-identifying metadata and implements an EfficientNet-B0 architecture for classification, U-Net for lesion segmentation/localization, and Grad-CAM for visual explainability. The current neural-network architectures have not yet been trained or validated on the intended real-world mammography dataset, so current outputs must not be interpreted as clinically meaningful predictions.
+- **Molecular research framework** — mplements a transcriptomic-analysis workflow designed for TCGA-BRCA gene-expression data and biologically relevant pathways, including cell-cycle regulation, DNA-damage response and repair, PI3K–AKT–mTOR signaling, hormone-receptor signaling, and HER2/ERBB signaling. The molecular and mammography datasets represent separate, non-patient-matched cohorts and are not combined to generate patient-level conclusions.
+- **Interface and data governance** — a Streamlit-based research interface integrates the implemented components, supports generation of a preliminary-analysis PDF report, and includes privacy-oriented data handling and a **Right to Erasure**.
 
-Everything runs **locally, in memory**. The model architectures are open and free;
-no part of this project is a paid product or contains monetization hooks.
+MamNexa AI is an academic research prototype, not a medical device, diagnostic system, or clinical decision-support tool.
 
 ## Clinical & scientific guardrails
 
