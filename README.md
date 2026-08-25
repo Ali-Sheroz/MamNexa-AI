@@ -1,6 +1,6 @@
 # MamNexa AI
 
-**An open-source research framework developed in Python for exploring explainable AI methods in mammographic analysis and molecular breast-cancer research..**
+**An open-source research framework developed in Python for exploring explainable AI methods in mammographic analysis and molecular breast-cancer research.**
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Python 3.11 / 3.12](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
@@ -32,10 +32,10 @@ Any real-world mammographic finding requires interpretation by a qualified healt
 
 ## What MamNexa AI is
 
-MamNexa AI is a **python-based research and educational framework** that demonstrates how an explainable AI pipeline for breast-cancer research can be designed and implemented responsibly::
+MamNexa AI is a **python-based research and educational framework** that demonstrates how an explainable AI pipeline for breast-cancer research can be designed and implemented responsibly:
 
 - **Mammographic Imaging Framework** —supports DICOM preprocessing with removal of patient-identifying metadata and implements an EfficientNet-B0 architecture for classification, U-Net for lesion segmentation/localization, and Grad-CAM for visual explainability. The current neural-network architectures have not yet been trained or validated on the intended real-world mammography dataset, so current outputs must not be interpreted as clinically meaningful predictions.
-- **Molecular research framework** — mplements a transcriptomic-analysis workflow designed for TCGA-BRCA gene-expression data and biologically relevant pathways, including cell-cycle regulation, DNA-damage response and repair, PI3K–AKT–mTOR signaling, hormone-receptor signaling, and HER2/ERBB signaling. The molecular and mammography datasets represent separate, non-patient-matched cohorts and are not combined to generate patient-level conclusions.
+- **Molecular research framework** — implements a transcriptomic-analysis workflow designed for TCGA-BRCA gene-expression data and biologically relevant pathways, including cell-cycle regulation, DNA-damage response and repair, PI3K–AKT–mTOR signaling, hormone-receptor signaling, and HER2/ERBB signaling. The molecular and mammography datasets represent separate, non-patient-matched cohorts and are not combined to generate patient-level conclusions.
 - **Interface and data governance** — a Streamlit-based research interface integrates the implemented components, supports generation of a preliminary-analysis PDF report, and includes privacy-oriented data handling and a **Right to Erasure**.
 
 MamNexa AI is an academic research prototype, not a medical device, diagnostic system, or clinical decision-support tool.
@@ -89,7 +89,7 @@ Each software phase was implementation-tested on synthetic data before integrati
   unified by a single `explain_case()` orchestration seam.
   `src/segmentation.py`, `src/localization.py`, `src/gradcam.py`, `src/explain.py`
 - **Phase III — Interface & Erasure.** The Streamlit dashboard, a Supabase backend
-  (PostgreSQL metadata + S3 objects) with an automatic offline ephemeral fallback,
+  (PostgreSQL metadata + object storage) with an automatic offline ephemeral fallback,
   a vector PDF pre-analysis report, and the Right-to-Erasure hard-purge flow.
   `app.py`, `src/backend.py`, `src/report.py`, `.env.example`
 - **Phase IV — Molecular Extension.** TCGA-BRCA transcriptomic analysis mapped to
