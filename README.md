@@ -78,8 +78,7 @@ These are hard constraints baked into the code (see `src/config.py` →
 
 ## The four phases
 
-The project was built in **strict, isolated phases**; each was verified before the
-next began.
+Each software phase was implementation-tested on synthetic data before integration with the next phase; this does not constitute model or clinical validation.
 
 - **Phase I — Imaging Baseline.** CBIS-DDSM preparation, DICOM decoding with VOI
   LUT / MONOCHROME1 handling, PHI stripping, patient-level splits, and an
