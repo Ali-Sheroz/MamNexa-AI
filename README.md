@@ -244,15 +244,20 @@ non-patient-matched.
 
 ## Datasets
 
-- **CBIS-DDSM** (Curated Breast Imaging Subset of DDSM) — mammography, for the
-  imaging pipeline.
-- **TCGA-BRCA** — breast-cancer transcriptomics, for the molecular pathway module.
+- MamNexa AI is designed around two publicly available, de-identified research datasets representing separate components of the framework:
 
-These are **separate cohorts and are not patient-matched.** No dataset is bundled
-with this repository; the demo and tests use synthetic stand-ins so the project
-runs without any download. Obtain the real datasets from their official sources
-under their respective data-use terms.
+CBIS-DDSM (Curated Breast Imaging Subset of DDSM) — the intended real-world dataset for the mammographic imaging pipeline, including development and evaluation of breast-lesion classification, localization, and explainability components.
 
+TCGA-BRCA (The Cancer Genome Atlas — Breast Invasive Carcinoma) — the intended molecular dataset for the transcriptomic and biological-pathway analysis module.
+
+Important Dataset Distinction
+CBIS-DDSM and TCGA-BRCA represent independent, non-patient-matched cohorts. Mammographic images from CBIS-DDSM are therefore not linked to the gene-expression profiles of TCGA-BRCA patients, and MamNexa AI does not treat these data as belonging to the same individuals or use them for patient-level multimodal prediction.
+
+The current repository does not bundle either real-world dataset. The implemented pipelines and automated tests use synthetic stand-ins to verify software functionality without requiring large dataset downloads.
+
+Full training and evaluation on the intended real-world datasets remain future experimental work. No real-data performance or clinical-validity claims are made in the current version.
+
+Researchers wishing to reproduce or extend the real-data experiments should obtain the datasets independently from their official sources and comply with the applicable access conditions, licenses, and data-use requirements.
 ## Status & maturity
 
 ## Status & Maturity
