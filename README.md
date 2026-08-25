@@ -274,23 +274,23 @@ Accordingly, **no claims are made regarding model accuracy, sensitivity, specifi
 
 | Component | Status |
 |---|---|
-| Software architecture | ✅ Implemented |
-| Synthetic end-to-end testing | ✅ Completed |
-| Safety and terminology guardrails | ✅ Implemented and tested |
-| Patient-level splitting logic | ✅ Implemented and tested |
-| DICOM preprocessing pipeline | ✅ Implemented |
-| EfficientNet-B0 architecture | ✅ Implemented |
-| U-Net architecture | ✅ Implemented |
-| Grad-CAM explainability pipeline | ✅ Implemented |
-| Streamlit research interface | ✅ Implemented |
-| PDF reporting workflow | ✅ Implemented |
-| Data-governance / erasure workflow | ✅ Implemented |
-| Molecular-analysis framework | ✅ Implemented |
-| Real CBIS-DDSM model training | ⏳ Future work |
-| Real TCGA-BRCA analysis | ⏳ Future work |
-| Real-data performance evaluation | ⏳ Not established |
-| External dataset validation | ⏳ Not performed |
-| Clinical validation | ❌ Outside current project scope |.
+| Software architecture |  Implemented |
+| Synthetic end-to-end testing |  Completed |
+| Safety and terminology guardrails | Implemented and tested |
+| Patient-level splitting logic |  Implemented and tested |
+| DICOM preprocessing pipeline |  Implemented |
+| EfficientNet-B0 architecture |  Implemented |
+| U-Net architecture |  Implemented |
+| Grad-CAM explainability pipeline |  Implemented |
+| Streamlit research interface |  Implemented |
+| PDF reporting workflow |  Implemented |
+| Data-governance / erasure workflow | Implemented |
+| Molecular-analysis framework | Implemented |
+| Real CBIS-DDSM model training | Future work |
+| Real TCGA-BRCA analysis |  Future work |
+| Real-data performance evaluation |  Not established |
+| External dataset validation |  Not performed |
+| Clinical validation |  Outside current project scope |.
 
 ## License
 
