@@ -258,11 +258,8 @@ under their respective data-use terms.
 ## Status & Maturity
 
 MamNexa AI is a **research and educational prototype developed for academic and portfolio evaluation**. It is **not clinical software, a medical device, or a diagnostic system**.
-
 The software pipelines, user interface, reporting workflow, data-governance safeguards, and molecular-analysis framework have been implemented and **verified end-to-end using synthetic test data**. This verification demonstrates software functionality and pipeline integration; it does **not** constitute model, diagnostic, or clinical validation.
-
 The neural-network architectures have **not yet been trained or evaluated on the intended real-world datasets**. When trained weights are unavailable, the application may use randomly initialized weights solely to demonstrate pipeline functionality. Any resulting outputs are explicitly identified as **non-interpretable demonstration outputs**.
-
 Accordingly, **no claims are made regarding model accuracy, sensitivity, specificity, diagnostic performance, or clinical validity**. Nothing produced by the current version of MamNexa AI should be used to diagnose, confirm, exclude, support, or influence any clinical decision.
 
 ### Current Development Status
