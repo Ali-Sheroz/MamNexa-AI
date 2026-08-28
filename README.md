@@ -1,6 +1,6 @@
 # MamNexa AI
 
-**An open-source research framework developed in Python for exploring explainable AI methods in mammographic analysis and molecular breast-cancer research.**
+**A source-available research framework developed in Python for exploring explainable AI methods in mammographic analysis and molecular breast-cancer research.**
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Python 3.11 / 3.12](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
