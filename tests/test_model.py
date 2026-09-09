@@ -151,9 +151,9 @@ def test_interpret_high_index_uses_cautious_suspicious_vocabulary() -> None:
         assert phrase not in blob
 
 
-def test_interpret_low_index_is_benign_appearing_not_definitive() -> None:
+def test_interpret_low_index_is_illustrative_not_definitive() -> None:
     result = m.interpret_suspicion(0.03, threshold=SUSPICION_THRESHOLD)
-    assert "Benign-appearing" in result["assessment"]
+    assert result["assessment"] == "Assessment: Illustrative output only — untrained model"
     # Must never claim the tissue is safe / cancer-free.
     blob = " ".join(result.values()).lower()
     assert "safe tissue" not in blob

@@ -231,10 +231,10 @@ def interpret_pathway_activity(
 ) -> tuple[str, str]:
     """Map a mean-z score to a (direction, cautious label). Never diagnostic."""
     if score >= threshold:
-        return "up", "Elevated pathway activity (cohort-relative research signal)"
+        return "up", "Higher cohort-relative mean z-score"
     if score <= -threshold:
-        return "down", "Reduced pathway activity (cohort-relative research signal)"
-    return "neutral", "Near cohort-average activity"
+        return "down", "Lower cohort-relative mean z-score"
+    return "neutral", "Near cohort-average mean z-score"
 
 
 def score_pathway_for_sample(
@@ -337,15 +337,30 @@ def link_imaging_to_molecular(
     """
     idx = float(suspicion_index)
     elevated = [s.name for s in molecular_bundle.get("pathway_scores", []) if s.direction == "up"]
+    provenance = molecular_bundle.get("provenance", "")
+    if provenance == PROVENANCE_SYNTHETIC:
+        cohort_source = (
+            "The molecular pathway context is drawn from a separate synthetic "
+            "reference cohort and is not derived from the imaged sample."
+        )
+    elif provenance == PROVENANCE_USER:
+        cohort_source = (
+            "The molecular pathway context is drawn from a separate user-provided "
+            "expression cohort."
+        )
+    else:
+        cohort_source = (
+            "The molecular pathway context is drawn from a separate reference "
+            "cohort and is not derived from the imaged sample."
+        )
     context = (
         f"The imaging Model Malignancy Suspicion Index for the uploaded image is "
-        f"{idx:.4f}. The molecular pathway context below is drawn from a separate "
-        "TCGA-BRCA reference cohort and is NOT from this patient. Imaging "
-        "(CBIS-DDSM) and transcriptomic (TCGA-BRCA) data are not patient-matched; "
-        "they are shown side by side only to illustrate, for research and education, "
-        "how mammographic suspicion and tumor-biology pathways such as cell-cycle "
-        "regulation and DNA damage response are studied. This is not a combined "
-        "diagnosis and Requires Professional Review."
+        f"{idx:.4f}. {cohort_source} Imaging (CBIS-DDSM) and transcriptomic "
+        "(TCGA-BRCA) data are not patient-matched; they are shown side by side "
+        "only to illustrate, for research and education, how mammographic "
+        "suspicion and tumor-biology pathways such as cell-cycle regulation and "
+        "DNA damage response are studied. This is not a combined diagnosis and "
+        "Requires Professional Review."
     )
     result = {
         "suspicion_index": idx,

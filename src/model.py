@@ -149,7 +149,7 @@ def interpret_suspicion(index: float, threshold: float = SUSPICION_THRESHOLD) ->
     assessment = (
         "AI-Identified Suspicious Area"
         if index >= threshold
-        else "Benign-appearing finding (low model suspicion)"
+        else "Assessment: Illustrative output only — untrained model"
     )
     result = {
         "index_name": SUSPICION_INDEX_NAME,
