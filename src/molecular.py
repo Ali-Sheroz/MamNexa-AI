@@ -14,19 +14,39 @@ reference context for research and education only; it never confirms, rules out,
 or diagnoses disease. All language stays cautious and review-oriented, and every
 emitted string is swept against :data:`config.FORBIDDEN_PHRASES`.
 
-Method
-------
-Single-sample scoring is deliberately simple and transparent (no black box):
+Method (what this actually computes)
+------------------------------------
+The score is a **mean cohort-relative gene z-score** -- deliberately simple and
+transparent, NOT a validated pathway-activation measurement:
 
-1. z-score every gene across the reference cohort (mean 0, unit variance);
-2. a pathway's activity score for a sample is the **mean z** of its measured
-   genes (a lightweight single-sample gene-set score in the spirit of ssGSEA);
-3. |mean z| beyond ``PATHWAY_ACTIVITY_THRESHOLD`` is flagged as an *elevated* or
-   *reduced* cohort-relative research signal, with the top contributing genes
-   surfaced so the score is fully explainable.
+1. z-score every gene across the reference cohort (mean 0, unit variance within
+   this cohort);
+2. a pathway's score for a sample is the **arithmetic mean of the z-scores** of
+   that pathway's measured genes;
+3. |mean z| beyond ``PATHWAY_ACTIVITY_THRESHOLD`` is surfaced as an *elevated*
+   or *reduced* cohort-relative signal, with the top contributing genes shown so
+   the number is fully explainable.
+
+This is explicitly **not ssGSEA** and not any rank-based or competitive gene-set
+enrichment method: there is no ranking, no enrichment statistic, no null model,
+and no significance testing. It is a plain descriptive average of standardized
+expression, and it is meaningful only *relative to the specific reference cohort
+supplied*. A different cohort yields different z-scores for the same sample.
 
 Gene sets are small, hand-curated panels of well-established breast-cancer genes
-(KEGG / MSigDB-Hallmark-inspired); they are illustrative, not exhaustive.
+(KEGG / MSigDB-Hallmark-inspired); they are illustrative, not exhaustive, and are
+not validated signatures.
+
+Input expectations
+------------------
+* A (genes x samples) matrix: first column = HGNC gene symbol, remaining columns
+  = samples. Symbols are upper-cased; duplicate symbols keep the first row.
+* Values are treated as already-normalized expression (e.g. log2 TPM/FPKM or
+  RSEM). No within-matrix normalization beyond the cohort z-scoring is applied.
+* At least :data:`MIN_COHORT_SAMPLES` samples are required: a z-score across one
+  sample is undefined, so single-sample "cohorts" are rejected.
+* Provenance is caller-supplied and never inferred: an uploaded matrix is labeled
+  "user-provided (unverified)" and is NEVER relabeled as verified TCGA-BRCA.
 """
 from __future__ import annotations
 
@@ -39,11 +59,17 @@ import pandas as pd
 
 from .config import (
     FORBIDDEN_PHRASES,
+    MIN_COHORT_SAMPLES,
     MOLECULAR_DISCLAIMER,
     MOLECULAR_TOP_GENES,
     PATHWAY_ACTIVITY_THRESHOLD,
     RANDOM_SEED,
 )
+
+# Provenance labels. Provenance is caller-supplied, never inferred from content.
+PROVENANCE_SYNTHETIC = "synthetic (deterministic demo cohort)"
+PROVENANCE_USER = "user-provided (unverified)"
+PROVENANCE_TCGA_VERIFIED = "TCGA-BRCA (verified)"
 
 # ---------------------------------------------------------------------------
 # Curated pathway gene sets (illustrative; KEGG / MSigDB-Hallmark-inspired).
@@ -106,15 +132,87 @@ def load_expression_matrix(source: Any, sep: str = ",", index_col: int = 0) -> p
     """Load a (genes x samples) expression matrix from a path or file-like object.
 
     The first column is the gene symbol (used as the index); remaining columns are
-    samples. Symbols are upper-cased and de-duplicated; non-numeric cells become 0.
+    samples. Symbols are upper-cased and de-duplicated (first row kept); non-numeric
+    cells become 0. Structural problems raise ``ValueError`` with a clear message.
     """
     df = pd.read_csv(source, sep=sep, index_col=index_col)
+    if df.shape[1] == 0:
+        raise ValueError(
+            "Expression matrix has no sample columns. Expected the first column to "
+            "be gene symbols and each remaining column to be a sample."
+        )
     df.index = df.index.astype(str).str.strip().str.upper()
+    # Drop unnamed / empty gene symbols that pandas may read as 'NAN'/''.
+    df = df[(df.index != "") & (df.index != "NAN")]
     df = df[~df.index.duplicated(keep="first")]
     df = df.apply(pd.to_numeric, errors="coerce").fillna(0.0)
-    if df.shape[1] == 0:
-        raise ValueError("Expression matrix has no sample columns.")
+    if df.shape[0] == 0:
+        raise ValueError("Expression matrix has no usable gene rows after cleaning.")
     return df
+
+
+def validate_cohort(
+    expr: pd.DataFrame,
+    *,
+    pathways: dict[str, list[str]] | None = None,
+    min_samples: int = MIN_COHORT_SAMPLES,
+) -> dict[str, Any]:
+    """Check an expression matrix is usable and report what was found.
+
+    Raises ``ValueError`` for fatal problems (too few samples, no genes, no
+    overlap with any curated pathway). Returns a report dict of non-fatal notes
+    (constant genes, duplicate columns, curated-gene coverage) the UI can surface
+    so the user understands the limits of the cohort-relative score.
+    """
+    pathways = pathways or PATHWAY_GENE_SETS
+    n_genes, n_samples = expr.shape
+
+    if n_samples < min_samples:
+        raise ValueError(
+            f"Cohort has only {n_samples} sample(s); at least {min_samples} are "
+            "required. A cohort-relative z-score is undefined for a single sample "
+            "(no spread to standardize against). Provide a larger reference cohort."
+        )
+    if n_genes == 0:
+        raise ValueError("Expression matrix has no gene rows.")
+
+    curated = {g for gs in pathways.values() for g in gs}
+    measured = curated & set(expr.index)
+    if not measured:
+        raise ValueError(
+            "None of the curated pathway genes were found in this matrix. Check "
+            "that the first column contains HGNC gene symbols (e.g. BRCA1, CCND1)."
+        )
+
+    # Non-fatal quality notes.
+    duplicate_samples = [c for c in expr.columns if list(expr.columns).count(c) > 1]
+    constant_genes = int((expr.std(axis=1, ddof=0) == 0).sum())
+    notes: list[str] = []
+    if constant_genes:
+        notes.append(
+            f"{constant_genes} gene(s) are constant across the cohort and "
+            "contribute a z-score of 0 (no cohort-relative information)."
+        )
+    if duplicate_samples:
+        notes.append(
+            f"Duplicate sample column name(s): {sorted(set(duplicate_samples))}. "
+            "Pathway scoring uses the first matching column."
+        )
+    if n_samples < 10:
+        notes.append(
+            f"Small cohort ({n_samples} samples): z-scores are unstable and easily "
+            "dominated by individual samples. Interpret with caution."
+        )
+
+    return {
+        "n_genes": int(n_genes),
+        "n_samples": int(n_samples),
+        "curated_genes_total": len(curated),
+        "curated_genes_measured": len(measured),
+        "constant_genes": constant_genes,
+        "duplicate_samples": sorted(set(duplicate_samples)),
+        "notes": notes,
+    }
 
 
 def zscore_genes(expr: pd.DataFrame) -> pd.DataFrame:
@@ -174,16 +272,22 @@ def analyze_sample(
     pathways: dict[str, list[str]] | None = None,
     threshold: float = PATHWAY_ACTIVITY_THRESHOLD,
     top_n: int = MOLECULAR_TOP_GENES,
+    provenance: str = PROVENANCE_USER,
+    min_samples: int = MIN_COHORT_SAMPLES,
 ) -> dict[str, Any]:
     """Produce the full, guardrail-safe molecular pathway bundle for one sample.
 
-    ``sample`` defaults to the first column. Returns a dict with per-pathway
-    :class:`PathwayScore` objects, a cautious summary, cohort context, and the
-    non-patient-matched disclaimer.
+    ``sample`` defaults to the first column. ``provenance`` is a caller-supplied
+    label describing where the cohort came from (synthetic / user-provided /
+    verified TCGA-BRCA) -- it is recorded verbatim and NEVER inferred from the
+    data. Validates the cohort first (raises ``ValueError`` on a single-sample or
+    otherwise unusable matrix). Returns a dict with per-pathway
+    :class:`PathwayScore` objects, a cautious summary, cohort context, quality
+    notes, provenance, and the non-patient-matched disclaimer.
     """
     pathways = pathways or PATHWAY_GENE_SETS
-    if expr.shape[1] == 0:
-        raise ValueError("Expression matrix has no samples to analyze.")
+    report = validate_cohort(expr, pathways=pathways, min_samples=min_samples)
+
     sample = sample if sample is not None else str(expr.columns[0])
     if sample not in expr.columns:
         raise KeyError(f"Sample {sample!r} is not a column in the expression matrix.")
@@ -199,9 +303,10 @@ def analyze_sample(
     n_up = sum(s.direction == "up" for s in scores)
     n_down = sum(s.direction == "down" for s in scores)
     summary = (
-        f"Cohort-relative molecular pathway context for sample {sample}: "
-        f"{n_up} pathway(s) show elevated and {n_down} show reduced research signals "
-        f"versus the {expr.shape[1]}-sample TCGA-BRCA reference cohort. These are "
+        f"Cohort-relative molecular pathway context for sample {sample} "
+        f"(mean gene z-score per pathway): {n_up} pathway(s) show elevated and "
+        f"{n_down} show reduced signals versus the {expr.shape[1]}-sample reference "
+        f"cohort [provenance: {provenance}]. These are descriptive, "
         "hypothesis-generating research observations, not findings about the imaged "
         "patient, and Require Professional Review."
     )
@@ -210,6 +315,10 @@ def analyze_sample(
         "sample": sample,
         "cohort_size": int(expr.shape[1]),
         "genes_measured": int(expr.shape[0]),
+        "provenance": provenance,
+        "method": "mean cohort-relative gene z-score (not ssGSEA; not validated)",
+        "quality_notes": report["notes"],
+        "curated_gene_coverage": f"{report['curated_genes_measured']}/{report['curated_genes_total']}",
         "pathway_scores": scores,
         "summary": summary,
         "disclaimer": MOLECULAR_DISCLAIMER,
@@ -254,7 +363,9 @@ def link_imaging_to_molecular(
 def _collect_molecular_text(obj: dict[str, Any]) -> list[str]:
     """Gather every human-facing string in a molecular bundle/link result."""
     texts: list[str] = [str(obj.get("summary", "")), str(obj.get("disclaimer", "")),
-                        str(obj.get("narrative", ""))]
+                        str(obj.get("narrative", "")), str(obj.get("method", "")),
+                        str(obj.get("provenance", ""))]
+    texts.extend(str(n) for n in obj.get("quality_notes", []))
     for s in obj.get("pathway_scores", []):
         texts.extend([s.name, s.activity_label, s.direction])
     texts.extend(str(p) for p in obj.get("related_pathways", []))

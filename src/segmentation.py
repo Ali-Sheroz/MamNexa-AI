@@ -204,17 +204,36 @@ def binarize_mask(mask: np.ndarray, threshold: float = MASK_THRESHOLD) -> np.nda
     return (np.asarray(mask, dtype=np.float32) >= threshold).astype(np.uint8)
 
 
+class CheckpointLoadError(RuntimeError):
+    """A U-Net checkpoint was present but could not be loaded (corrupt/incompatible).
+
+    Raised instead of silently falling back to random weights.
+    """
+
+
 def load_trained_unet(path: str | Path) -> tf.keras.Model:
     """Load an exported U-Net, wiring up the custom loss/metric objects.
 
-    Phase III loads this under ``@st.cache_resource`` for local inference.
+    Phase III loads this under ``@st.cache_resource`` for local inference. Raises
+    :class:`FileNotFoundError` if the file is absent and :class:`CheckpointLoadError`
+    if it exists but cannot be deserialized -- never a silent random-weight fallback.
     """
-    return tf.keras.models.load_model(
-        str(path),
-        custom_objects={
-            "bce_dice_loss": bce_dice_loss,
-            "dice_loss": dice_loss,
-            "dice_coefficient": dice_coefficient,
-            "iou_coefficient": iou_coefficient,
-        },
-    )
+    path = Path(path)
+    if not path.is_file():
+        raise FileNotFoundError(f"Segmenter checkpoint not found: {path}")
+    try:
+        return tf.keras.models.load_model(
+            str(path),
+            custom_objects={
+                "bce_dice_loss": bce_dice_loss,
+                "dice_loss": dice_loss,
+                "dice_coefficient": dice_coefficient,
+                "iou_coefficient": iou_coefficient,
+            },
+        )
+    except Exception as exc:  # noqa: BLE001 - re-raise as an explicit, typed failure
+        raise CheckpointLoadError(
+            f"Segmenter checkpoint at {path} exists but failed to load "
+            f"({type(exc).__name__}: {exc}). It may be corrupt or built with an "
+            f"incompatible TensorFlow/Keras version."
+        ) from exc

@@ -40,6 +40,7 @@ from .config import (
     REPORT_TITLE,
     SUSPICION_INDEX_NAME,
 )
+from .model_status import ModelStatus, overall_mode
 
 # A4 portrait geometry (mm).
 _MARGIN = 15
@@ -123,6 +124,8 @@ def _collect_report_text(
     safe_meta: dict[str, Any] | None,
     case_id: str | None,
     created_at: str,
+    model_statuses: list[ModelStatus] | None = None,
+    data_provenance: str | None = None,
 ) -> list[str]:
     """Gather every string that will be printed, for the pre-render guardrail sweep."""
     interp = bundle.get("interpretation", {}) or {}
@@ -133,9 +136,14 @@ def _collect_report_text(
         str(bundle.get("disclaimer", "")),
         str(case_id or ""),
         created_at,
+        str(data_provenance or ""),
     ]
     texts.extend(str(v) for v in interp.values())
     texts.extend(str(les.get("label", "")) for les in bundle.get("lesions", []))
+    for status in model_statuses or []:
+        texts.extend([status.short(), status.banner])
+    if model_statuses:
+        texts.append(overall_mode(model_statuses))
     if safe_meta:
         texts.extend(f"{k}: {v}" for k, v in safe_meta.items())
     return texts
@@ -274,21 +282,35 @@ def build_report_pdf(
     created_at: str | None = None,
     original_image: np.ndarray | None = None,
     output_path: str | Path | None = None,
+    model_statuses: list[ModelStatus] | None = None,
+    data_provenance: str | None = None,
 ) -> bytes:
     """Render the explanation ``bundle`` into a vector PDF and return its bytes.
 
     ``bundle`` is an ``explain.explain_case`` result. ``safe_meta`` is optional,
     already-PHI-free technical metadata (no identifiers). ``original_image`` (a
     ``[0,1]`` float or uint8 array) is embedded alongside the Grad-CAM and lesion
-    overlays when provided. If ``output_path`` is given the PDF is also written to
-    disk. Raises ``ValueError`` if any text would violate the clinical guardrails.
+    overlays when provided.
+
+    ``model_statuses`` and ``data_provenance`` make the report scientifically
+    honest and self-contained: the model load state (untrained / loaded / failed)
+    and where the input came from (synthetic vs user-provided) are printed in a
+    prominent block on page 1 and repeated in the technical metadata, so a reader
+    who only has the PDF still knows a demo score has no predictive meaning.
+
+    If ``output_path`` is given the PDF is also written to disk. Raises
+    ``ValueError`` if any text would violate the clinical guardrails.
     """
     interp = dict(bundle.get("interpretation", {}) or {})
     lesions = list(bundle.get("lesions", []) or [])
     created_at = created_at or datetime.now(timezone.utc).isoformat(timespec="seconds")
 
     # Guardrail sweep BEFORE we draw anything.
-    _assert_report_text_safe(_collect_report_text(bundle, safe_meta, case_id, created_at))
+    _assert_report_text_safe(
+        _collect_report_text(
+            bundle, safe_meta, case_id, created_at, model_statuses, data_provenance
+        )
+    )
 
     index_value = interp.get("index_value")
     if index_value is None and "suspicion_index" in bundle:
@@ -317,6 +339,44 @@ def build_report_pdf(
 
     # --- Disclaimer banner (top, unmissable) -------------------------------
     _disclaimer_banner(pdf, disclaimer)
+
+    # --- Model status & data provenance (honesty block, page 1) ------------
+    if model_statuses is not None or data_provenance is not None:
+        statuses = model_statuses or []
+        mode = overall_mode(statuses) if statuses else "unknown"
+        is_demo = any(s.is_demo for s in statuses) or not statuses
+        # A red banner for demonstration output; amber for loaded checkpoints.
+        if is_demo:
+            pdf.set_fill_color(250, 224, 224)
+            pdf.set_draw_color(180, 40, 40)
+            pdf.set_text_color(150, 20, 20)
+            banner = (
+                "DEMONSTRATION OUTPUT - NO PREDICTIVE MEANING. The scores and "
+                "regions in this report were produced by untrained model(s) with "
+                "random weights (or a simulated fallback) to verify software "
+                "behavior only. They are NOT predictions, probabilities of cancer, "
+                "risk categories, or clinical assessments."
+            )
+        else:
+            pdf.set_fill_color(255, 244, 214)
+            pdf.set_draw_color(200, 150, 0)
+            pdf.set_text_color(120, 80, 0)
+            banner = (
+                "Produced from loaded model checkpoint(s). This application does "
+                "NOT verify how those checkpoints were trained or evaluated; "
+                "treat performance as unestablished until independently validated."
+            )
+        _para(pdf, banner, h=5, size=9, style="B", align="C", fill=True, border=1)
+        pdf.set_text_color(0, 0, 0)
+        pdf.set_draw_color(0, 0, 0)
+        pdf.ln(1)
+
+        _para(pdf, f"Analysis mode: {mode}", h=5, size=9, style="B")
+        for status in statuses:
+            _para(pdf, f"- {status.short()}", h=4.5, size=9)
+        if data_provenance:
+            _para(pdf, f"Input data provenance: {data_provenance}", h=5, size=9)
+        pdf.ln(3)
 
     # --- Suspicion summary -------------------------------------------------
     _heading(pdf, "Model Assessment")
@@ -356,9 +416,15 @@ def build_report_pdf(
     _lesion_table(pdf, lesions)
 
     # --- Technical metadata ------------------------------------------------
-    if safe_meta:
+    if safe_meta or model_statuses or data_provenance:
         _heading(pdf, "Technical Metadata (non-identifying)")
-        for key in sorted(safe_meta):
+        if model_statuses:
+            _para(pdf, f"analysis_mode: {overall_mode(model_statuses)}", h=5, size=9)
+            for status in model_statuses:
+                _para(pdf, f"model_status: {status.short()}", h=5, size=9)
+        if data_provenance:
+            _para(pdf, f"data_provenance: {data_provenance}", h=5, size=9)
+        for key in sorted(safe_meta or {}):
             _para(pdf, f"{key}: {safe_meta[key]}", h=5, size=9)
         pdf.ln(2)
 

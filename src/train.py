@@ -39,6 +39,7 @@ from sklearn.metrics import (
 
 from .config import (
     BATCH_SIZE,
+    CLASSIFIER_CHECKPOINT_NAME,
     DECISION_DISCLAIMER,
     EARLY_STOPPING_PATIENCE,
     FINE_TUNE_AT,
@@ -205,13 +206,20 @@ def train(args: argparse.Namespace) -> None:
         )
 
     # --- Export -------------------------------------------------------------
+    # Export to the SHARED checkpoint name (src/config.py) that the dashboard
+    # loads, so training output is picked up with no manual renaming.
     output_dir.mkdir(parents=True, exist_ok=True)
-    model_path = output_dir / "efficientnetb0_baseline.keras"
-    weights_path = output_dir / "efficientnetb0_baseline.weights.h5"
+    model_path = output_dir / CLASSIFIER_CHECKPOINT_NAME
+    weights_path = model_path.with_suffix(".weights.h5")
     model.save(str(model_path))
     model.save_weights(str(weights_path))
     print(f"\nExported model  -> {model_path}")
     print(f"Exported weights-> {weights_path}")
+    print(
+        "This checkpoint is loaded automatically by app.py "
+        f"(config.CLASSIFIER_CHECKPOINT). Place it under {MODELS_DIR} or set "
+        "MAMNEXA_CLASSIFIER_CHECKPOINT to its path."
+    )
 
     # --- Evaluate -----------------------------------------------------------
     print("\nEvaluating on held-out test split...")

@@ -170,6 +170,31 @@ def _assert_guardrail_safe(result: dict[str, str]) -> None:
         raise ValueError(f"Guardrail violation - forbidden phrasing in output: {hits}")
 
 
+class CheckpointLoadError(RuntimeError):
+    """A checkpoint file was present but could not be loaded (corrupt/incompatible).
+
+    Raised instead of silently falling back to random weights, so the UI can tell
+    the user their checkpoint is broken rather than pretending an untrained model
+    is the intended one.
+    """
+
+
 def load_trained_model(path: str | Path) -> tf.keras.Model:
-    """Load an exported .keras model (used by Phase III with @st.cache_resource)."""
-    return tf.keras.models.load_model(str(path))
+    """Load an exported .keras classifier (Phase III uses this via @st.cache_resource).
+
+    Raises :class:`FileNotFoundError` if the file is absent (caller may choose to
+    fall back to an untrained demo model) and :class:`CheckpointLoadError` if the
+    file exists but cannot be deserialized -- we never silently substitute random
+    weights for a corrupt checkpoint.
+    """
+    path = Path(path)
+    if not path.is_file():
+        raise FileNotFoundError(f"Classifier checkpoint not found: {path}")
+    try:
+        return tf.keras.models.load_model(str(path))
+    except Exception as exc:  # noqa: BLE001 - re-raise as an explicit, typed failure
+        raise CheckpointLoadError(
+            f"Classifier checkpoint at {path} exists but failed to load "
+            f"({type(exc).__name__}: {exc}). It may be corrupt or built with an "
+            f"incompatible TensorFlow/Keras version."
+        ) from exc

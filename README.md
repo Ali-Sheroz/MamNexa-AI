@@ -2,13 +2,16 @@
 
 **A source-available research framework developed in Python for exploring explainable AI methods in mammographic analysis and molecular breast-cancer research.**
 
+[![CI](https://github.com/Ali862i/MamNexa-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/Ali862i/MamNexa-AI/actions/workflows/ci.yml)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Python 3.11 / 3.12](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![Status: Research prototype](https://img.shields.io/badge/status-research%20prototype-orange.svg)](#status--maturity)
 
-> ⚠️ ** Research and educational prototype only — NOT a medical device, diagnostic tool, or clinical decision-support system.
-MamNexa AI is designed to demonstrate an explainable AI framework for breast-cancer research. It does not confirm, rule out, or diagnose cancer. Outputs are model-generated research signals intended solely for educational and research evaluation and must not be used to make or influence clinical decisions.
-Any real-world mammographic finding requires interpretation by a qualified healthcare professional. See Clinical & scientific guardrails. See [Clinical & scientific guardrails](#clinical--scientific-guardrails).
+> ⚠️ **Research and educational prototype only — NOT a medical device, diagnostic tool, or clinical decision-support system.**
+>
+> MamNexa AI is designed to demonstrate an explainable AI framework for breast-cancer research. It does not confirm, rule out, or diagnose cancer. Outputs are model-generated research signals intended solely for educational and research evaluation and must not be used to make or influence clinical decisions.
+>
+> Any real-world mammographic finding requires interpretation by a qualified healthcare professional. See [Clinical & scientific guardrails](#clinical--scientific-guardrails).
 
 ---
 
@@ -24,6 +27,7 @@ Any real-world mammographic finding requires interpretation by a qualified healt
 - [Right to Erasure](#right-to-erasure)
 - [Running the verification tests](#running-the-verification-tests)
 - [Datasets](#datasets)
+- [Documentation](#documentation)
 - [Status & maturity](#status--maturity)
 - [License](#license)
 - [Citation & academic context](#citation--academic-context)
@@ -104,8 +108,13 @@ MamNexa-AI/
 ├── app.py                  # Streamlit dashboard (entry point)
 ├── CLAUDE.md               # Project directives & guardrails (source of truth)
 ├── README.md               # You are here
-├── requirements.txt        # Pinned dependencies (one environment for all phases)
+├── LICENSE                 # CC BY-NC 4.0
+├── CITATION.cff            # Citation metadata
+├── requirements.txt        # Full stack incl. TensorFlow (all phases)
+├── requirements-demo.txt   # Lightweight tier (no TensorFlow) — used by CI
 ├── .env.example            # Supabase config template (copy to .env)
+├── .github/workflows/ci.yml # Lightweight CI (TF-free tests, no downloads)
+├── docs/                   # MODEL_STATUS, TRAINING, MOLECULAR
 ├── scripts/
 │   ├── setup_env.sh        # venv bootstrap (Linux / macOS / Colab)
 │   └── setup_env.bat        # venv bootstrap (Windows)
@@ -164,6 +173,17 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
+**Dependency tiers.** There are two requirement files:
+
+| File | Contains | Use it when |
+|---|---|---|
+| `requirements.txt` | Full stack **including TensorFlow 2.17** | Running the neural networks (classifier / segmenter), the full app, or training. |
+| `requirements-demo.txt` | Everything **except TensorFlow** | The molecular panel, PDF report, backend/erasure, DICOM preprocessing, guardrail logic, and the lightweight CI. |
+
+The `tensorflow<->numpy` pin is the fragile part of the full stack: TF 2.17
+requires `numpy>=1.26,<2.1`, so numpy is upper-bounded to match. Don't loosen the
+numpy pin without re-checking the installed TensorFlow's constraint.
+
 ### 3. Launch the dashboard
 
 With the virtual environment activated:
@@ -180,17 +200,28 @@ interpreter directly:
 ```
 
 Streamlit will open the app in your browser (default `http://localhost:8501`).
+On Windows, port 8501 is sometimes reserved by the OS; if the app fails to bind,
+use another port:
+
+```bash
+.venv/Scripts/python.exe -m streamlit run app.py --server.port 8600
+```
 
 ### 4. Use it
 
-1. Upload a mammogram — **DICOM (`.dcm`)** is preferred (full PHI-stripping
-   pipeline); **PNG/JPG** is accepted as a demo convenience.
-2. Click **Run analysis** to compute the Model Malignancy Suspicion Index, the
-   Grad-CAM attention overlay, and the numbered AI-Identified Suspicious Areas.
+1. **New here?** Click **Load synthetic demo example** for a guided, no-download
+   run on a built-in synthetic mammogram. Or upload your own — **DICOM (`.dcm`)**
+   is preferred (full PHI-stripping pipeline); **PNG/JPG/WebP** is accepted as a
+   demo convenience — then click **Run analysis**.
+2. Review the Model Malignancy Suspicion Index, the Grad-CAM attention overlay,
+   and the numbered AI-Identified Suspicious Areas. When no trained weights are
+   present these are clearly labeled **Demonstration output — no predictive
+   meaning**.
 3. Explore the **Molecular Pathway Context** panel — use the built-in synthetic
-   TCGA-BRCA demo cohort or upload your own expression matrix (genes × samples),
-   pick a sample, and view cohort-relative pathway activity. This context is a
-   **separate, non-patient-matched** research cohort by design.
+   demo cohort or upload your own expression matrix (genes × samples), pick a
+   sample, and view cohort-relative pathway activity. This context is a
+   **separate, non-patient-matched** research cohort by design and is never
+   relabeled as verified TCGA-BRCA.
 4. **Download the PDF** pre-analysis report, optionally **store** the analysis to
    the backend, and exercise the **Right to Erasure** to purge it.
 
@@ -258,9 +289,27 @@ The current repository does not bundle either real-world dataset. The implemente
 Full training and evaluation on the intended real-world datasets remain future experimental work. No real-data performance or clinical-validity claims are made in the current version.
 
 Researchers wishing to reproduce or extend the real-data experiments should obtain the datasets independently from their official sources and comply with the applicable access conditions, licenses, and data-use requirements.
-## Status & maturity
 
-## Status & Maturity
+## Documentation
+
+In-depth docs live in [`docs/`](docs/):
+
+- **[docs/MODEL_STATUS.md](docs/MODEL_STATUS.md)** — exactly what the scores and
+  images mean today, the three checkpoint states (`untrained` / `loaded` /
+  `load_failed`), why a corrupt checkpoint is surfaced as an error rather than
+  silently replaced with random weights, and the shared checkpoint paths.
+- **[docs/TRAINING.md](docs/TRAINING.md)** — the practical route to training the
+  EfficientNet-B0 classifier on real CBIS-DDSM data, including patient-level
+  splitting, and where the checkpoint must land for the app to pick it up.
+- **[docs/MOLECULAR.md](docs/MOLECULAR.md)** — what the molecular panel computes
+  (mean cohort-relative gene z-scores, **not** ssGSEA), the expected input
+  format, cohort validation, and the non-patient-matched integrity guardrail.
+
+A regenerable **sample PDF report** — produced in demonstration mode, so it
+carries the "no predictive meaning" honesty block — is at
+[`artifacts/sample_report.pdf`](artifacts/sample_report.pdf).
+
+## Status & maturity
 
 MamNexa AI is a **research and educational prototype developed for academic and portfolio evaluation**. It is **not clinical software, a medical device, or a diagnostic system**.
 
@@ -290,7 +339,7 @@ Accordingly, **no claims are made regarding model accuracy, sensitivity, specifi
 | Real TCGA-BRCA analysis |  Future work |
 | Real-data performance evaluation |  Not established |
 | External dataset validation |  Not performed |
-| Clinical validation |  Outside current project scope |.
+| Clinical validation |  Outside current project scope |
 
 ## License
 

@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use MamNexa AI in your research, please cite it as below."
+title: "MamNexa AI: An explainable AI framework for mammographic and molecular breast-cancer research"
+abstract: >-
+  MamNexa AI is a source-available, non-commercial research and educational
+  framework demonstrating explainable AI methods for mammographic imaging
+  (EfficientNet-B0 classification, U-Net segmentation, Grad-CAM attention) and
+  cohort-relative transcriptomic pathway analysis. It is a research prototype,
+  not a medical device, and makes no clinical-performance claims.
+type: software
+authors:
+  - given-names: Ali
+    # Add family-names, ORCID, and affiliation here when publishing.
+license: CC-BY-NC-4.0
+repository-code: "https://github.com/Ali862i/MamNexa-AI"
+keywords:
+  - explainable-ai
+  - breast-cancer
+  - mammography
+  - transcriptomics
+  - medical-imaging
+  - research-prototype
