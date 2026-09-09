@@ -79,6 +79,11 @@ These are hard constraints baked into the code (see `src/config.py` →
                  │   Supabase / ephemeral store  +  Right-to-Erasure hard purge                           │
                  └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
+<img width="1858" height="868" alt="Screenshot 2026-09-09 204645" src="https://github.com/user-attachments/assets/645a5956-0555-455e-9e2d-ee8f0e7822cb" />
+<img width="1841" height="922" alt="Screenshot 2026-09-09 204728" src="https://github.com/user-attachments/assets/ad8f8c01-3beb-494b-bead-fb2f1aaf8d61" />
+<img width="1861" height="911" alt="Screenshot 2026-09-09 204809" src="https://github.com/user-attachments/assets/6eee6346-ec7f-4fbc-9281-99621df8e7dd" />
+<img width="1828" height="805" alt="Screenshot 2026-09-09 204851" src="https://github.com/user-attachments/assets/f00a6926-3cb6-46c3-99a1-38c40b23d10a" />
+<img width="1883" height="960" alt="Screenshot 2026-09-09 204930" src="https://github.com/user-attachments/assets/2b50f582-069d-4125-aad6-07f31357ff11" />
 
 ## The four phases
 
