@@ -1,0 +1,49 @@
+# ============================================================================
+# MamNexa AI - DEMO / non-deep-learning dependencies
+# ----------------------------------------------------------------------------
+# This is the LIGHTWEIGHT tier: everything needed for the guardrail logic, the
+# molecular panel, the PDF report, the backend/erasure flow, DICOM preprocessing,
+# and the OpenCV localization -- WITHOUT TensorFlow.
+#
+# It is what the lightweight CI installs (a full TensorFlow install is a large
+# download and is exercised locally instead). It is NOT enough to build or run
+# the neural networks -- for that, install the full requirements.txt.
+#
+#     pip install -r requirements-demo.txt      # fast, no TensorFlow
+#     pip install -r requirements.txt           # full stack incl. TensorFlow
+#
+# Tested target: Python 3.11 / 3.12.
+# ============================================================================
+
+# --- Numerics ---------------------------------------------------------------
+numpy>=1.26.0,<2.1.0          # matches the full stack's tensorflow 2.17 window
+
+# --- Medical image I/O and DICOM decoding -----------------------------------
+pydicom>=2.4.0,<3.0.0
+python-gdcm>=3.0.24
+pylibjpeg>=2.0.0
+pylibjpeg-libjpeg>=2.1.0
+pylibjpeg-openjpeg>=2.3.0
+
+# --- Classical image processing ---------------------------------------------
+opencv-python-headless>=4.9.0
+Pillow>=10.2.0
+
+# --- Data handling & patient-level splitting --------------------------------
+pandas>=2.1.0
+scikit-learn>=1.4.0
+tqdm>=4.66.0
+
+# --- Interface & reporting --------------------------------------------------
+streamlit>=1.36.0
+fpdf2>=2.7.9
+
+# --- Backend / storage SDK --------------------------------------------------
+supabase>=2.6.0
+python-dotenv>=1.0.1
+
+# --- Visualization ----------------------------------------------------------
+matplotlib>=3.8.0
+
+# --- Testing ----------------------------------------------------------------
+pytest>=8.0.0

@@ -6,6 +6,7 @@ preprocessing module and the data-partitioning script agree on conventions
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 # --- Repository layout ------------------------------------------------------
@@ -15,6 +16,32 @@ DATA_DIR: Path = PROJECT_ROOT / "data"          # raw CBIS-DDSM lives here (giti
 ARTIFACTS_DIR: Path = PROJECT_ROOT / "artifacts"
 SPLITS_DIR: Path = ARTIFACTS_DIR / "splits"     # generated train/val/test manifests
 MODELS_DIR: Path = ARTIFACTS_DIR / "models"      # exported weights + metric reports
+
+# --- Model checkpoints (SINGLE source of truth) -----------------------------
+# Training (src/train.py) EXPORTS to these exact paths and the dashboard
+# (app.py) LOADS from them, so the two can never drift into the "training wrote
+# X, the app expected Y" mismatch. Override via environment variables to point
+# the dashboard at checkpoints stored elsewhere WITHOUT renaming files:
+#     MAMNEXA_CLASSIFIER_CHECKPOINT=/path/to/model.keras streamlit run app.py
+# The classifier basename matches what train.py saves; there is no U-Net
+# trainer yet (see docs/MODEL_STATUS.md), so the segmenter checkpoint is a
+# documented placeholder path that simply will not exist until one is added.
+CLASSIFIER_CHECKPOINT_NAME: str = "efficientnetb0_baseline.keras"
+SEGMENTER_CHECKPOINT_NAME: str = "unet.keras"
+
+
+def _checkpoint_path(env_var: str, default_name: str) -> Path:
+    """Resolve a checkpoint path from an env override, else the default location."""
+    override = os.environ.get(env_var)
+    return Path(override) if override else MODELS_DIR / default_name
+
+
+CLASSIFIER_CHECKPOINT: Path = _checkpoint_path(
+    "MAMNEXA_CLASSIFIER_CHECKPOINT", CLASSIFIER_CHECKPOINT_NAME
+)
+SEGMENTER_CHECKPOINT: Path = _checkpoint_path(
+    "MAMNEXA_SEGMENTER_CHECKPOINT", SEGMENTER_CHECKPOINT_NAME
+)
 
 # --- Image geometry ---------------------------------------------------------
 # EfficientNet-B0's native input resolution is 224x224x3.
@@ -125,6 +152,9 @@ LICENSE_NOTICE: str = (
 # signal -- never a diagnosis.
 PATHWAY_ACTIVITY_THRESHOLD: float = 0.5
 MOLECULAR_TOP_GENES: int = 5          # contributing genes to surface per pathway
+# A z-score needs spread across samples; a single sample cannot be z-scored. We
+# require a minimum cohort so "cohort-relative" is meaningful, not noise.
+MIN_COHORT_SAMPLES: int = 3
 # Scientific-integrity guardrail: imaging (CBIS-DDSM) and transcriptomics
 # (TCGA-BRCA) are SEPARATE, non-patient-matched cohorts. The molecular panel is
 # reference context for research/education, never this patient's tumor biology.

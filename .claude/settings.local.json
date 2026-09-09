@@ -28,7 +28,14 @@
       "Bash(\".venv/Scripts/python.exe\" -m compileall -q src/molecular.py src/config.py tests/test_molecular.py)",
       "Bash(\".venv/Scripts/python.exe\" -m pytest tests/test_molecular.py -v)",
       "Bash(.venv/Scripts/python.exe -m compileall -q app.py src/molecular.py)",
-      "Bash(.venv/Scripts/python.exe -m pytest tests -q)"
+      "Bash(.venv/Scripts/python.exe -m pytest tests -q)",
+      "Bash(git stash *)",
+      "Bash(git merge *)",
+      "Bash(.venv/Scripts/python.exe -m pytest tests/test_model_status.py -q)",
+      "Bash(.venv/Scripts/python.exe -m pytest tests/test_honesty_regressions.py -q)",
+      "Bash(.venv/Scripts/python.exe -m pytest -q tests/test_backend.py tests/test_data_split.py tests/test_honesty_regressions.py tests/test_localization.py tests/test_molecular.py tests/test_preprocessing.py tests/test_report.py)",
+      "Bash(.venv/Scripts/python.exe -c \"import ast; ast.parse\\(open\\('app.py',encoding='utf-8'\\).read\\(\\)\\); print\\('app.py parses OK'\\)\")",
+      "Bash(.venv/Scripts/python.exe -c ' *)"
     ]
   }
 }
